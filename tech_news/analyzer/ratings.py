@@ -1,21 +1,15 @@
-from tech_news.database import db
+from tech_news.database import find_news
 
 
 # Requisito 10
 def top_5_categories():
-    # Busca todas as notícias no banco de dados
-    all_news = db.news.find()
+    news = find_news()
+    print(news)
+    category = {}
 
-    # Cria um dicionário para contar a ocorrência de cada categoria
-    category_count = {}
-    for news in all_news:
-        categories = news.get("categories", [])
-        for category in categories:
-            category_count[category] = category_count.get(category, 0) + 1
+    for item in news:
+        category[item["category"]] = category.get(item["category"], 0) + 1
 
-    # Ordena as categorias por popularidade (número de ocorrências) e em ordem alfabética
-    sorted_categories = sorted(category_count.items(), key=lambda x: (-x[1], x[0]))
+    categories = sorted(category.items(), key=lambda x: (-x[1], x[0]))
 
-    # Retorna as cinco categorias mais populares
-    return [category for category, _ in sorted_categories[:5]]
-
+    return [category[0] for category in categories[:5]]
