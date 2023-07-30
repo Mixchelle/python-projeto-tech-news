@@ -1,5 +1,6 @@
 import requests
 import time
+from parsel import Selector
 
 
 # Requisito 1
@@ -24,8 +25,17 @@ def fetch(url):
 
 # Requisito 2
 def scrape_updates(html_content):
-    """Seu código deve vir aqui"""
-    raise NotImplementedError
+    news_urls = []
+    selector = Selector(text=html_content)
+    news_cards = selector.css(".entry-title")
+    for card in news_cards:
+        url = card.css('a::attr(href)').get()
+        if url:
+            news_urls.append(url)
+    if news_urls and selector.css(".entry-title").css('.highlighted'):
+        news_urls.pop(0)
+    return news_urls
+
 
 
 # Requisito 3
