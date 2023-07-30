@@ -1,5 +1,6 @@
 from tech_news.database import db
 from datetime import datetime
+from tech_news.database import search_news
 
 
 # Requisito 7
@@ -21,8 +22,8 @@ def search_by_date(date):
     return [(news["title"], news["url"]) for news in result]
 
 
-
 # Requisito 9
 def search_by_category(category):
-    """Seu código deve vir aqui"""
-    raise NotImplementedError
+    result = search_news({"category": {"$regex": category, "$options": "i"}})
+    news_list = [(new["title"], new["url"]) for new in result]
+    return news_list
