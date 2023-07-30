@@ -2,6 +2,8 @@ import requests
 import time
 from parsel import Selector
 from tech_news.database import create_news
+from itertools import islice
+
 
 # Requisito 1
 def fetch(url):
@@ -59,7 +61,7 @@ def scrape_news(html_content):
         .get()
     reading_time = int(
         selector.css("ul.post-meta li.meta-reading-time::text")
-                .re_first(r"\d+")
+        .re_first(r"\d+")
     )
     summary = "".join(
         selector.css("div.entry-content > p:first-of-type *::text").getall()
@@ -80,29 +82,22 @@ def scrape_news(html_content):
 
 # Requisito 5
 def get_tech_news(amount):
-    all_news = []
     base_url = "https://blog.betrybe.com/"
-    while len(all_news) < amount:
+    news_urls = []
+    while len(news_urls) < amount:
         html_content = fetch(base_url)
-        news_urls = scrape_updates(html_content)
-
-        for url in news_urls:
-            news_html = fetch(url)
-            if not news_html:
-                continue
-
-            news_data = scrape_news(news_html)
-            all_news.append(news_data)
-
-            if len(all_news) == amount:
-                break
-
-        next_page_link = scrape_next_page_link(html_content)
-        if not next_page_link:
+        if not html_content:
             break
+        news_urls.extend(scrape_updates(html_content))
+        base_url = scrape_next_page_link(html_content)
 
-        base_url = next_page_link
+    news_content = []
+    for url in islice(news_urls, amount):
+        news_html = fetch(url)
+        if not news_html:
+            continue
+        news_data = scrape_news(news_html)
+        news_content.append(news_data)
 
-    create_news(all_news)
-
-    return all_news
+    create_news(news_content)
+    return news_content
